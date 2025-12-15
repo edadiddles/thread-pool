@@ -1,3 +1,7 @@
+mod threadpool;
+use crate::threadpool::ThreadPool;
+
 fn main() {
-    println!("Hello, world!");
+    let thread_pool = ThreadPool::new(255);
+    println!("{}", thread_pool.num_threads);
 }

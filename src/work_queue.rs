@@ -3,6 +3,7 @@ pub struct WorkQueue {
     pub queue: [u32; 10],
     read_idx: usize,
     write_idx: usize,
+    slot_cnt: usize,
 }
 
 impl WorkQueue {
@@ -11,11 +12,12 @@ impl WorkQueue {
             queue: [0; 10],
             read_idx: 0,
             write_idx: 0,
+            slot_cnt: 0,
         }
     }
 
     pub fn push(&mut self, handle: u32) {
-        if (self.write_idx == 9 && self.read_idx == 0) || (self.read_idx != 0 && self.write_idx == self.read_idx-1) {
+        if self.is_full() {
             println!("Queue Full");
             return;
         }
@@ -25,7 +27,7 @@ impl WorkQueue {
     }
 
     pub fn peek(&self) -> Result<u32, &'static str> {
-        if self.read_idx == self.write_idx {
+        if self.is_empty() {
             println!("Queue Empty");
             return Err("Queue Empty");
         }
@@ -34,7 +36,7 @@ impl WorkQueue {
     }
 
     pub fn pop(&mut self) -> Result<u32, &'static str> {
-        if self.read_idx == self.write_idx {
+        if self.is_empty() {
             println!("Queue Empty");
             return Err("Queue Empty");
         }
@@ -45,11 +47,20 @@ impl WorkQueue {
         Ok(val)
     }
 
+    fn is_full(&self) -> bool {
+        self.slot_cnt == 10
+    }
+
+    fn is_empty(&self) -> bool {
+        self.slot_cnt == 0
+    }
+
     fn increment_write_idx(&mut self) {
         self.write_idx += 1;
         if self.write_idx == 10 {
             self.write_idx = 0;
         }
+        self.slot_cnt += 1;
     }
 
     fn increment_read_idx(&mut self) {
@@ -57,6 +68,7 @@ impl WorkQueue {
         if self.read_idx == 10 {
             self.read_idx = 0;
         }
+        self.slot_cnt -= 1;
     }
 }
 
@@ -95,7 +107,8 @@ mod tests {
         q.push(7);
         q.push(8);
         q.push(9);
-        q.push(10); // Queue Full
+        q.push(10); 
+        q.push(11); // Queue Full
 
         let _ = q.pop().unwrap(); // 1
         let _ = q.pop().unwrap(); // 2
@@ -105,10 +118,52 @@ mod tests {
         let _ = q.pop().unwrap(); // 6
         let _ = q.pop().unwrap(); // 7
         let _ = q.pop().unwrap(); // 8
-        let v = q.pop().unwrap(); // 9
+        let _ = q.pop().unwrap(); // 9
+        let v = q.pop().unwrap(); // 10
         let e = q.pop().unwrap_err(); // Queue Empty
 
-        assert_eq!(9, v);
+        assert_eq!(10, v);
         assert_eq!("Queue Empty", e);
+    }
+
+    #[test]
+    fn test_moving_base_idx() {
+        let mut q = WorkQueue::new();
+
+        for _ in 1..=1000 {
+            for m in 1..=9 {
+                q.push(m);
+            }
+
+            for _ in 1..=9{
+                let _ = q.pop().unwrap();
+            }
+
+            assert!(q.is_empty())
+        }
+    }
+
+    #[test]
+    fn test_acc_buffer() {
+        let mut q = WorkQueue::new();
+
+        for _ in 1..=9 {
+            for m in 1..=2 {
+                q.push(m);
+            }
+
+            let _ = q.pop().unwrap();
+        }
+
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        q.pop().unwrap();
+        assert!(q.is_empty());
     }
 }

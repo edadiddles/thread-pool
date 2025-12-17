@@ -24,7 +24,7 @@ impl WorkQueue {
         self.increment_write_idx();
     }
 
-    pub fn peek(self: Self) -> Result<u32, &'static str> {
+    pub fn peek(&self) -> Result<u32, &'static str> {
         if self.read_idx == self.write_idx {
             println!("Queue Empty");
             return Err("Queue Empty");
@@ -80,5 +80,35 @@ mod tests {
 
         let v = q.pop().unwrap_err();
         assert_eq!("Queue Empty", v);
+    }
+
+    #[test]
+    fn test_full_push() {
+        let mut q = WorkQueue::new();
+        
+        q.push(1);
+        q.push(2);
+        q.push(3);
+        q.push(4);
+        q.push(5);
+        q.push(6);
+        q.push(7);
+        q.push(8);
+        q.push(9);
+        q.push(10); // Queue Full
+
+        let _ = q.pop().unwrap(); // 1
+        let _ = q.pop().unwrap(); // 2
+        let _ = q.pop().unwrap(); // 3
+        let _ = q.pop().unwrap(); // 4
+        let _ = q.pop().unwrap(); // 5
+        let _ = q.pop().unwrap(); // 6
+        let _ = q.pop().unwrap(); // 7
+        let _ = q.pop().unwrap(); // 8
+        let v = q.pop().unwrap(); // 9
+        let e = q.pop().unwrap_err(); // Queue Empty
+
+        assert_eq!(9, v);
+        assert_eq!("Queue Empty", e);
     }
 }

@@ -19,8 +19,10 @@ mod tests {
     use super::*;
 
     #[test]
+    #[should_panic]
     fn test_submit() {
-        let t = Task::new(|| println!("Hello world"));
+        // verify closure runs by expecting panic and calling panic inside closure
+        let t = Task::new(|| panic!("closure ran"));
 
         t.run();
     }

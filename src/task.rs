@@ -20,7 +20,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_submit() {
+    fn test_closure_which_panics() {
         // verify closure runs by expecting panic and calling panic inside closure
         let t = Task::new(|| panic!("closure ran"));
 

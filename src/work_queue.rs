@@ -91,28 +91,23 @@ mod tests {
     #[test]
     fn test_empty_pop() {
         let mut q = WorkQueue::new();
-
-        let v = q.pop();
-        assert!(v.is_err());
+        assert!(q.pop().is_err());
     }
 
     #[test]
     fn test_full_push() {
         let mut q = WorkQueue::new();
        
-        for i in 1..=QUEUE_SIZE+1 {
-            q.push(Task::new(move || println!("{}", i)));
+        for _ in 1..=QUEUE_SIZE+1 {
+            q.push(Task::new(|| {}));
         }
 
-        for _ in 1..QUEUE_SIZE {
-            let _ = q.pop();
+        for _ in 1..=QUEUE_SIZE {
+            assert!(q.pop().is_ok());
         }
 
-        let v = q.pop(); // Last item
-        let e = q.pop(); // Queue Empty
-
-        assert!(v.is_ok());
-        assert!(e.is_err());
+        // This is a pop on empty queue
+        assert!(q.pop().is_err());
     }
 
     #[test]
@@ -120,12 +115,12 @@ mod tests {
         let mut q = WorkQueue::new();
 
         for _ in 1..=QUEUE_SIZE*10 {
-            for m in 1..QUEUE_SIZE {
-                q.push(Task::new(move || println!("{}", m)));
+            for _ in 1..QUEUE_SIZE {
+                q.push(Task::new(|| {}));
             }
 
             for _ in 1..QUEUE_SIZE{
-                let _ = q.pop();
+                assert!(q.pop().is_ok());
             }
 
             assert!(q.is_empty())
@@ -136,23 +131,17 @@ mod tests {
     fn test_acc_buffer() {
         let mut q = WorkQueue::new();
 
-        for _ in 1..=9 {
-            for m in 1..=2 {
-                q.push(Task::new(move || println!("{}", m)));
+        for _ in 1..QUEUE_SIZE {
+            for _ in 1..=2 {
+                q.push(Task::new(|| {}));
             }
 
-            let _ = q.pop();
+            assert!(q.pop().is_ok());
         }
 
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
-        let _ = q.pop();
+        for _ in 1..QUEUE_SIZE {
+            assert!(q.pop().is_ok());
+        }
         assert!(q.is_empty());
     }
 }

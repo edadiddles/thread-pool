@@ -1,48 +1,49 @@
+use crate::task::Task;
+
 // queue should contain a handle to the method execution
 pub struct WorkQueue {
-    pub queue: [u32; 10],
+    pub queue: [Option<Task>; 10],
     read_idx: usize,
     write_idx: usize,
     slot_cnt: usize,
 }
 
 impl WorkQueue {
-    pub fn new() -> Self {
+    pub fn new() -> Self { 
         Self {
-            queue: [0; 10],
+            queue: std::array::from_fn(|_| { None }),
             read_idx: 0,
             write_idx: 0,
             slot_cnt: 0,
         }
     }
 
-    pub fn push(&mut self, handle: u32) {
+    pub fn push(&mut self, handle: Task) {
         if self.is_full() {
             println!("Queue Full");
             return;
         }
 
-        self.queue[self.write_idx] = handle;
+        self.queue[self.write_idx] = Some(handle);
         self.increment_write_idx();
     }
 
-    pub fn peek(&self) -> Result<u32, &'static str> {
+    pub fn peek(&self) -> Result<&Task, &'static str> {
         if self.is_empty() {
             println!("Queue Empty");
             return Err("Queue Empty");
         }
-
-        Ok(self.queue[self.read_idx])
+        
+        Ok(self.queue[self.read_idx].as_ref().unwrap())
     }
 
-    pub fn pop(&mut self) -> Result<u32, &'static str> {
+    pub fn pop(&mut self) -> Result<Task, &'static str> {
         if self.is_empty() {
             println!("Queue Empty");
             return Err("Queue Empty");
         }
 
-        let val = self.queue[self.read_idx];
-        self.queue[self.read_idx] = 0;
+        let val = self.queue[self.read_idx].take().unwrap();
         self.increment_read_idx();
         Ok(val)
     }
@@ -80,50 +81,49 @@ mod tests {
     fn test_push() {
         let mut q = WorkQueue::new();
 
-        q.push(1);
-        let v = q.peek().unwrap();
-        println!("testing: {}", v);
-        assert_eq!(1, v);
+        q.push(Task::new(|| println!("")));
+        let v = q.pop().unwrap();
+        v.run();
     }
 
     #[test]
     fn test_empty_pop() {
         let mut q = WorkQueue::new();
 
-        let v = q.pop().unwrap_err();
-        assert_eq!("Queue Empty", v);
+        let v = q.pop();
+        assert!(v.is_err());
     }
 
     #[test]
     fn test_full_push() {
         let mut q = WorkQueue::new();
         
-        q.push(1);
-        q.push(2);
-        q.push(3);
-        q.push(4);
-        q.push(5);
-        q.push(6);
-        q.push(7);
-        q.push(8);
-        q.push(9);
-        q.push(10); 
-        q.push(11); // Queue Full
+        q.push(Task::new(|| println!("{}", 1)));
+        q.push(Task::new(|| println!("{}", 2)));
+        q.push(Task::new(|| println!("{}", 3)));
+        q.push(Task::new(|| println!("{}", 4)));
+        q.push(Task::new(|| println!("{}", 5)));
+        q.push(Task::new(|| println!("{}", 6)));
+        q.push(Task::new(|| println!("{}", 7)));
+        q.push(Task::new(|| println!("{}", 8)));
+        q.push(Task::new(|| println!("{}", 9)));
+        q.push(Task::new(|| println!("{}", 10)));
+        q.push(Task::new(|| println!("{}", 11))); // Queue Full
 
-        let _ = q.pop().unwrap(); // 1
-        let _ = q.pop().unwrap(); // 2
-        let _ = q.pop().unwrap(); // 3
-        let _ = q.pop().unwrap(); // 4
-        let _ = q.pop().unwrap(); // 5
-        let _ = q.pop().unwrap(); // 6
-        let _ = q.pop().unwrap(); // 7
-        let _ = q.pop().unwrap(); // 8
-        let _ = q.pop().unwrap(); // 9
-        let v = q.pop().unwrap(); // 10
-        let e = q.pop().unwrap_err(); // Queue Empty
+        let _ = q.pop(); // 1
+        let _ = q.pop(); // 2
+        let _ = q.pop(); // 3
+        let _ = q.pop(); // 4
+        let _ = q.pop(); // 5
+        let _ = q.pop(); // 6
+        let _ = q.pop(); // 7
+        let _ = q.pop(); // 8
+        let _ = q.pop(); // 9
+        let v = q.pop(); // 10
+        let e = q.pop(); // Queue Empty
 
-        assert_eq!(10, v);
-        assert_eq!("Queue Empty", e);
+        assert!(v.is_ok());
+        assert!(e.is_err());
     }
 
     #[test]
@@ -132,11 +132,11 @@ mod tests {
 
         for _ in 1..=1000 {
             for m in 1..=9 {
-                q.push(m);
+                q.push(Task::new(move || println!("{}", m)));
             }
 
             for _ in 1..=9{
-                let _ = q.pop().unwrap();
+                let _ = q.pop();
             }
 
             assert!(q.is_empty())
@@ -149,21 +149,21 @@ mod tests {
 
         for _ in 1..=9 {
             for m in 1..=2 {
-                q.push(m);
+                q.push(Task::new(move || println!("{}", m)));
             }
 
-            let _ = q.pop().unwrap();
+            let _ = q.pop();
         }
 
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
-        q.pop().unwrap();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
+        let _ = q.pop();
         assert!(q.is_empty());
     }
 }

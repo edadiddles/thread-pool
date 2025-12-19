@@ -11,11 +11,10 @@ fn main() {
     println!("Num Threads: {}", thread_pool.num_threads);
     let t = Task::new(|| println!("Hello task!"));
     let mut q = WorkQueue::new();
-    q.push(1);
-    let p = q.peek().unwrap();
-    let v = q.pop().unwrap();
-    println!("Peek: {}", p);
-    println!("Pop: {}", v);
-    t.run();
+    q.push(t);
+    let p = q.peek();
+    println!("Peek: {}", p.is_ok());
+    let v = q.pop();
+    v.unwrap().run();
 
 }

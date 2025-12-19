@@ -114,6 +114,7 @@ mod tests {
     fn test_moving_base_idx() {
         let mut q = WorkQueue::new();
 
+        // nested for loops ~queue_size^2, can take a little while to run on large queue_size
         for _ in 1..=QUEUE_SIZE*10 {
             for _ in 1..QUEUE_SIZE {
                 q.push(Task::new(|| {}));

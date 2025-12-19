@@ -1,6 +1,6 @@
 use crate::task::Task;
 
-const QUEUE_SIZE: usize = 10;
+const QUEUE_SIZE: usize = 1000;
 
 // queue should contain a handle to the method execution
 pub struct WorkQueue {
@@ -99,29 +99,16 @@ mod tests {
     #[test]
     fn test_full_push() {
         let mut q = WorkQueue::new();
-        
-        q.push(Task::new(|| println!("{}", 1)));
-        q.push(Task::new(|| println!("{}", 2)));
-        q.push(Task::new(|| println!("{}", 3)));
-        q.push(Task::new(|| println!("{}", 4)));
-        q.push(Task::new(|| println!("{}", 5)));
-        q.push(Task::new(|| println!("{}", 6)));
-        q.push(Task::new(|| println!("{}", 7)));
-        q.push(Task::new(|| println!("{}", 8)));
-        q.push(Task::new(|| println!("{}", 9)));
-        q.push(Task::new(|| println!("{}", 10)));
-        q.push(Task::new(|| println!("{}", 11))); // Queue Full
+       
+        for i in 1..=QUEUE_SIZE+1 {
+            q.push(Task::new(move || println!("{}", i)));
+        }
 
-        let _ = q.pop(); // 1
-        let _ = q.pop(); // 2
-        let _ = q.pop(); // 3
-        let _ = q.pop(); // 4
-        let _ = q.pop(); // 5
-        let _ = q.pop(); // 6
-        let _ = q.pop(); // 7
-        let _ = q.pop(); // 8
-        let _ = q.pop(); // 9
-        let v = q.pop(); // 10
+        for _ in 1..QUEUE_SIZE {
+            let _ = q.pop();
+        }
+
+        let v = q.pop(); // Last item
         let e = q.pop(); // Queue Empty
 
         assert!(v.is_ok());
@@ -132,12 +119,12 @@ mod tests {
     fn test_moving_base_idx() {
         let mut q = WorkQueue::new();
 
-        for _ in 1..=1000 {
-            for m in 1..=9 {
+        for _ in 1..=QUEUE_SIZE*10 {
+            for m in 1..QUEUE_SIZE {
                 q.push(Task::new(move || println!("{}", m)));
             }
 
-            for _ in 1..=9{
+            for _ in 1..QUEUE_SIZE{
                 let _ = q.pop();
             }
 

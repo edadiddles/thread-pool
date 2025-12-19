@@ -1,8 +1,10 @@
 use crate::task::Task;
 
+const QUEUE_SIZE: usize = 10;
+
 // queue should contain a handle to the method execution
 pub struct WorkQueue {
-    pub queue: [Option<Task>; 10],
+    pub queue: [Option<Task>; QUEUE_SIZE],
     read_idx: usize,
     write_idx: usize,
     slot_cnt: usize,
@@ -49,7 +51,7 @@ impl WorkQueue {
     }
 
     fn is_full(&self) -> bool {
-        self.slot_cnt == 10
+        self.slot_cnt == QUEUE_SIZE
     }
 
     fn is_empty(&self) -> bool {
@@ -58,7 +60,7 @@ impl WorkQueue {
 
     fn increment_write_idx(&mut self) {
         self.write_idx += 1;
-        if self.write_idx == 10 {
+        if self.write_idx == QUEUE_SIZE {
             self.write_idx = 0;
         }
         self.slot_cnt += 1;
@@ -66,7 +68,7 @@ impl WorkQueue {
 
     fn increment_read_idx(&mut self) {
         self.read_idx += 1;
-        if self.read_idx == 10 {
+        if self.read_idx == QUEUE_SIZE {
             self.read_idx = 0;
         }
         self.slot_cnt -= 1;
